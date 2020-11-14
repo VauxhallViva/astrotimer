@@ -13,3 +13,6 @@ The following hardware is needed:
   - I2C OLED display based on SSD1306 or SH1106, most cheap Ebay variants works fine.
   - Four pushbuttons for Up/Down/Set/Exit.
   - Relay board **or** a NPN transistor driving a solid state relay.
+
+# Schematics
+Will be added soon...
