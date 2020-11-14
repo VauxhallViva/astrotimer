@@ -3,13 +3,12 @@
 // ------------------------------------------------------------------------------------------
 // This code runs on Arduino Uno or similar boards, and requires a DS1307 RTC module and
 // an OLED display (SSD1306 and SH1106 supported). Four buttons are used for input.
-// It will control a relay output (relay board, or a simple transistor dricing a SSR),
+// It will control a relay output (relay board, or a transistor driving a SSR),
 // turning the output on at a set time before sunrise, turn off at sunrise, turn on at
 // sunset and off again at a set time. Times and offsets can be adjusted.
 // ------------------------------------------------------------------------------------------
 // Change the LAT/LONG and UTF offset below to match your location
-// Also comment/uncomment your your type of OLED display
-
+// Also comment/uncomment your type of OLED display
 
 //******************* CONSTANTS AND VARIABLES *******************
 
@@ -29,8 +28,8 @@
 #define SCREEN_HEIGHT 64      // OLED display height, in pixels
 #define OLED_ADDRESS 0x3C     // I2C address for OLED display
 
-//#define OLED_SSD1306        // Uncomment if you have OLED based on SSD1306 (usually the 0.96" variants)
-#define OLED_SH1106           // Uncomment if you have OLED based on SH1106 (usually the 1.3" variants)
+//#define OLED_SSD1306        // UNCOMMENT if you have OLED based on SSD1306 (usually the 0.96" variants)
+#define OLED_SH1106           // UNCOMMENT if you have OLED based on SH1106 (usually the 1.3" variants)
 
 #if defined OLED_SSD1306
   #define OLED_RESET    -1      // Reset pin # (or -1 if sharing Arduino reset pin)
@@ -55,7 +54,7 @@
 #define BUTTON_UP 5           // I/O pin for UP button
 #define BUTTON_DOWN 4         // I/O pin for DOWN button
 #define RELAY 3               // I/O pin for relay output
-#define RELAY_ON LOW          // Set to either HIGH or LOW, depending on your relay setup
+#define RELAY_ON LOW          // Set to either HIGH or LOW (LOW for relay board, HIGH for transistor/SSR)
 
 #define MODE_TIME 0
 #define MODE_SELECT 1
@@ -220,7 +219,7 @@ void setup() {
   display.setCursor(30,45);
   display.print(F("Version 1.0"));
   display.display();
-  delay(2000); // Pause for 1 second
+  delay(2000); // Show startup info for 2 sec
   display.clearDisplay();
 }
 
@@ -257,15 +256,17 @@ void loop() {
   }
   
   if (timeNow.hour() != lastHr) {
-    //DST check, only need to be checked each hour
+    //DST check, adjust time and DST setting twice a year
+    //This logic works in Europe, but might need adjustment for other parts of the world
 
     if (timeNow.dayOfTheWeek() == 0 && timeNow.month() == 10 && timeNow.day() >= 25 && timeNow.hour() == 3 && settings.dstFlag == true) {
-      //setclockto 2 am;
+      //Set the clock to 2 am
       RTC.adjust(DateTime(timeNow.year(), timeNow.month(), timeNow.day(), 2, 0, 0));
       settings.dstFlag = false;
       EEPROM.write(EEPROM_OFFSET,settings.dstFlag);
     }
     if (timeNow.dayOfTheWeek() == 0 && timeNow.month() == 3 && timeNow.day() >= 25 && timeNow.hour() == 2 && settings.dstFlag == false) {
+      //Set the clock to 3 am
       RTC.adjust(DateTime(timeNow.year(), timeNow.month(), timeNow.day(), 3, 0, 0));
       settings.dstFlag = true;
       EEPROM.write(EEPROM_OFFSET,settings.dstFlag);
@@ -679,9 +680,6 @@ void checkButtons() {
 //-------------------------------------------------------------------
 
 void updateTimeDisplay() {
-
-  //Serial.println(String(timeNow.hour() + ":" + timeNow.minute()));
-
   display.drawRoundRect(0, 0, display.width()-1, 25, 1, OLED_WHITE);
   display.fillRect(1, 1, display.width()-3, 22, OLED_BLACK);
   display.setTextSize(2);
