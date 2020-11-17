@@ -15,4 +15,4 @@ The following hardware is needed:
   - Relay board **or** a NPN transistor driving a solid state relay.
 
 # Schematics
-!(https://github.com/VauxhallViva/astrotimer/blob/main/images/AstroTimer_schematic.png)
+![Schematics](https://github.com/VauxhallViva/astrotimer/blob/main/images/AstroTimer_schematic.png)
