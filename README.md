@@ -15,4 +15,6 @@ The following hardware is needed:
   - Relay board **or** a NPN transistor driving a solid state relay.
 
 # Schematics
+Below is the schematics on how to connect the hardware together, using a solid state relay (any standard NPN transistor will work, just beware of the pinout). If you want to use a relay board instead, then connect it directly to pin 3 on the Arduino board.
+
 ![Schematics](https://github.com/VauxhallViva/astrotimer/blob/main/images/AstroTimer_schematic.png)
