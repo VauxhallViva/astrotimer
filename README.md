@@ -18,4 +18,5 @@ The following hardware is needed:
 
 # Schematics
 Below is the schematics on how to connect the hardware together. I have included both a relay module and a transistor/solid state relay (any standard NPN transistor will work, just beware of the pinout), but you can choose either setup for both relay outputs.
+
 ![Schematics](https://github.com/VauxhallViva/astrotimer/blob/main/images/AstroTimer_schematic.png)
