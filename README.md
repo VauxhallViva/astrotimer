@@ -4,6 +4,7 @@ This project was born while searching for a timer device that could be used to c
   - Turn off lights at sunrise, with the ability to offset the time either before or after the actual sunrise.
   - Turn on lights at sunset, with the ability to offset the time either before or after the actual sunset.
   - Set a time in the evening when the lights should turn off.
+
 To make it even more flexible, there are two relay outputs. The first output is switched on/off for all the events, while the second output does not turn on/off at the preset times, only at sunrise/sunset. This way you can one set of lights that turns on at sunset, turns off at a preset time (after sunset), then turns on again at the preset time (before sunrise), while another set of lights are turned on at sunset and then off again at sunrise. You can of course choose to only include one relay in your setup.
 
 The prototype is using the Arduino Uno board, it uses almost all RAM, but seems to be stable. If you want to add functionality, you might need a more powerful board.
