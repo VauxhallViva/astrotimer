@@ -39,8 +39,11 @@ It is highly recommended to use a solid state relay if you intend to control mai
 When the code runs for the first time, and your RTC module is "fresh", the time will be set to the date and time when you compiled the code, and all settings will be defaulted.
 
 The buttons have the following functions:
+
 **SET**: Enters settings mode, and steps through the available settings.
+
 **EXIT**: Exits settings mode.
+
 **UP/DOWN**: In normal mode, the up button will toggle relay 1 on/off, and the down button will toggle relay 2 on/off. In settings mode, the selected setting is adjusted.
 
 To enter the settings mode, press the SET button. You can now use the UP/DOWN buttons to choose either "Settings" or "Adj.time". Then press the SET button again to enter the selected area, and you can now adjust the settings or the time/date.
