@@ -1,11 +1,12 @@
-// Astronomical Light Timer by Leif Almgren - ver 1.0 (2020-11-14)
+// Astronomical Light Timer by Leif Almgren - ver 1.1 (2020-11-21)
 // Released under GNU General Public License v3.0
 // ------------------------------------------------------------------------------------------
-// This code runs on Arduino Uno or similar boards, and requires a DS1307 RTC module and
-// an OLED display (SSD1306 and SH1106 supported). Four buttons are used for input.
-// It will control a relay output (relay board, or a transistor driving a SSR),
-// turning the output on at a set time before sunrise, turn off at sunrise, turn on at
-// sunset and off again at a set time. Times and offsets can be adjusted.
+// This code runs on minimum Arduino Uno (or its siblings), and requires a DS1307 RTC module
+// and an OLED display (SSD1306 and SH1106 supported). Four buttons are used for input.
+// It will control two relay outputs (relay boards, or transistors driving a SSR).
+// Relay #1 turns the output on at a set time before sunrise, turn off at sunrise, turn on at
+// sunset and off again at a set time. Relay #2 turns on at sunset and off at sunrie.
+// Times and offsets can be adjusted. Time is kept in 24hr format.
 // ------------------------------------------------------------------------------------------
 // Change the LAT/LONG and UTF offset below to match your location
 // Also comment/uncomment your type of OLED display
@@ -53,8 +54,10 @@
 #define BUTTON_EXIT 7         // I/O pin for EXIT button
 #define BUTTON_UP 5           // I/O pin for UP button
 #define BUTTON_DOWN 4         // I/O pin for DOWN button
-#define RELAY 3               // I/O pin for relay output
-#define RELAY_ON LOW          // Set to either HIGH or LOW (LOW for relay board, HIGH for transistor/SSR)
+#define RELAY1 3              // I/O pin for relay output #1
+#define RELAY2 2              // I/O pin for relay output #2
+#define RELAY1_ON LOW         // Set to either HIGH or LOW (LOW for relay board, HIGH for transistor/SSR)
+#define RELAY2_ON LOW         // Set to either HIGH or LOW (LOW for relay board, HIGH for transistor/SSR)
 
 #define MODE_TIME 0
 #define MODE_SELECT 1
@@ -112,13 +115,12 @@ timeStruct adjustedTime;
 
 Dusk2Dawn myLocation(LATITUDE, LONGITUDE, UTC_OFFSET);
 
-bool aFlag = true;
-
 byte lastHr = 0;
 byte lastMin = 0;
 byte lastSec = 0;
 byte displayMode = MODE_TIME;
-bool relayOn = false;
+bool relay1On = false;
+bool relay2On = false;
 
 int sunrise = 0;
 int sunset = 0;
@@ -177,8 +179,10 @@ void setup() {
   pinMode(BUTTON_SET, INPUT_PULLUP);
   pinMode(BUTTON_UP, INPUT_PULLUP);
   pinMode(BUTTON_DOWN, INPUT_PULLUP);
-  pinMode(RELAY, OUTPUT);
-  digitalWrite(RELAY, !RELAY_ON);
+  pinMode(RELAY1, OUTPUT);
+  pinMode(RELAY2, OUTPUT);
+  digitalWrite(RELAY1, !RELAY1_ON);
+  digitalWrite(RELAY2, !RELAY2_ON);
     
   if (! RTC.isrunning()) {
     //Serial.println(F("RTC is NOT running, setting time."));
@@ -296,34 +300,35 @@ void checkActions() {
   byte sunEventHr;
   byte sunEventMin;
   int sunEvent;
-  //Check if relay status should be updated
   if (settings.onSunrise) {
-    // Check if relay should be turned on
+    // Check if relay should be turned on at preset time
     if (settings.sunriseTime != 0 and settings.sunriseTime < sunrise) {
       if (sunriseOnHr == timeNow.hour() and sunriseOnMin == timeNow.minute()) {
-        relayOn = true;
-        digitalWrite(RELAY, RELAY_ON);
+        relay1On = true;
+        digitalWrite(RELAY1, RELAY1_ON);
       }
     }
   }
   if (settings.onSunset) {
-    // Check if relay should be turned off
+    // Check if relay should be turned off at preset time
     if (settings.sunsetTime != 0) {
       if (sunsetOffHr == timeNow.hour() and sunsetOffMin == timeNow.minute()) {
-        relayOn = false;
-        digitalWrite(RELAY, !RELAY_ON);
+        relay1On = false;
+        digitalWrite(RELAY1, !RELAY1_ON);
       }
     }
   }
 
-  // Check if relay should be turned off at sunrise
   if (settings.onSunrise) {
+    // Check if relay should be turned off at sunrise
     sunEvent = ((sunriseHr * 60) + sunriseMin) + settings.sunriseOffset;
     sunEventHr = sunEvent / 60;
     sunEventMin = sunEvent - (sunEventHr * 60);
     if (sunEventHr == timeNow.hour() and sunEventMin == timeNow.minute()) {
-      relayOn = false;
-      digitalWrite(RELAY, !RELAY_ON);
+      relay1On = false;
+      digitalWrite(RELAY1, !RELAY1_ON);
+      relay2On = false;
+      digitalWrite(RELAY2, !RELAY2_ON);
     }
   }
 
@@ -333,8 +338,10 @@ void checkActions() {
     sunEventHr = sunEvent / 60;
     sunEventMin = sunEvent - (sunEventHr * 60);
     if (sunEventHr == timeNow.hour() and sunEventMin == timeNow.minute() and sunset < settings.sunsetTime) {
-      relayOn = true;
-      digitalWrite(RELAY, RELAY_ON);
+      relay1On = true;
+      digitalWrite(RELAY1, RELAY1_ON);
+      relay2On = true;
+      digitalWrite(RELAY2, RELAY2_ON);
     }
   }
 }
@@ -393,13 +400,21 @@ void exitBtnAction() {
 
 void upDownBtnAction(int btn) {
   if (displayMode == MODE_TIME) {
-    if (btn == BUTTON_UP and relayOn == false) {
-      relayOn = true;
-      digitalWrite(RELAY, RELAY_ON);
+    if (btn == BUTTON_UP and relay1On == false) {
+      relay1On = true;
+      digitalWrite(RELAY1, RELAY1_ON);
     }
-    else if (btn == BUTTON_DOWN and relayOn == true) {
-      relayOn = false;
-      digitalWrite(RELAY, !RELAY_ON);
+    else if (btn == BUTTON_UP) {
+      relay1On = false;
+      digitalWrite(RELAY1, !RELAY1_ON);
+    }
+    if (btn == BUTTON_DOWN and relay2On == false) {
+      relay2On = true;
+      digitalWrite(RELAY2, RELAY2_ON);
+    }
+    else if (btn == BUTTON_DOWN) {
+      relay2On = false;
+      digitalWrite(RELAY2, !RELAY2_ON);
     }
     updateStatusDisplay();
   }
@@ -725,13 +740,24 @@ void updateStatusDisplay() {
   display.setTextSize(1);
   display.setTextColor(OLED_WHITE);
   display.setCursor(83,29);
-  display.print(F("OUTPUT"));
+  if (timeNow.second() % 2 == 0)
+    display.print(F("RELAY1"));
+  else
+    display.print(F("RELAY2"));
   display.setTextSize(2);
   display.setCursor(80,42);
-  if (relayOn)
-    display.print(F("On"));
-  else
-    display.print(F("Off"));
+  if (timeNow.second() % 2 == 0) {
+    if (relay1On)
+      display.print(F("On"));
+    else
+      display.print(F("Off"));
+  }
+  else {
+    if (relay2On)
+      display.print(F("On"));
+    else
+      display.print(F("Off"));
+  }
 
   display.display();
 }
@@ -996,5 +1022,3 @@ char* formatDigits(byte digits, byte mode) {
     return str;
   }
 }
-
-//-------------------------------------------------------------------
