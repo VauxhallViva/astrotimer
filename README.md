@@ -1,5 +1,5 @@
 # Astro Timer
-This project was born while searching for a timer device that could be used to control lamps based on sunrise/sunset. I was unable to find anything within a reasonable price range that would handle the needs I had:
+This project was born while searching for a timer device that could be used to control lamps based on sunrise/sunset, in an environment where home automation devices would not work. I was unable to find anything within a reasonable price range that would handle the needs I had:
   - Set a time in the morning when the lights should turn on.
   - Turn off lights at sunrise, with the ability to offset the time either before or after the actual sunrise.
   - Turn on lights at sunset, with the ability to offset the time either before or after the actual sunset.
