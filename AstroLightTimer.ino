@@ -1,4 +1,4 @@
-// Astronomical Light Timer by Leif Almgren - ver 1.1 (2020-11-21)
+// Astronomical Light Timer by Leif Almgren - ver 1.2 (2020-12-22)
 // Released under GNU General Public License v3.0
 // ------------------------------------------------------------------------------------------
 // This code runs on minimum Arduino Uno (or its siblings), and requires a DS1307 RTC module
@@ -205,6 +205,14 @@ void setup() {
 
   // Get settings and validate them
   EEPROM.get(EEPROM_OFFSET,settings);
+  if (settings.sunsetOffset > 180 or settings.sunsetOffset < -180)
+    settings.sunsetOffset = 0;
+  if (settings.sunriseOffset > 180 or settings.sunriseOffset < -180)
+    settings.sunriseOffset = 0;
+  if (settings.sunsetTime > 1440 or settings.sunsetTime < 0)
+    settings.sunsetTime = 0;
+  if (settings.sunriseTime > 1440 or settings.sunriseTime < 0)
+    settings.sunriseTime = 0;
   
   updateSunEventSettings();
 
@@ -221,7 +229,7 @@ void setup() {
   display.fillRect(20,30,88,2, OLED_WHITE);
   display.setTextSize(1);
   display.setCursor(30,45);
-  display.print(F("Version 1.0"));
+  display.print(F("Version 1.2"));
   display.display();
   delay(2000); // Show startup info for 2 sec
   display.clearDisplay();
@@ -380,6 +388,8 @@ void setBtnAction() {
   }
   updateSetDisplay();
 }
+
+//-------------------------------------------------------------------
 
 void exitBtnAction() {
   if (displayMode != MODE_TIME) {
@@ -706,6 +716,7 @@ void updateTimeDisplay() {
   display.print(formatDigits(timeNow.minute(),1));
   display.print(" ");
   display.print(formatDigits(timeNow.second(),1));
+  
   display.display();
 }
 
@@ -740,24 +751,18 @@ void updateStatusDisplay() {
   display.setTextSize(1);
   display.setTextColor(OLED_WHITE);
   display.setCursor(83,29);
-  if (timeNow.second() % 2 == 0)
-    display.print(F("RELAY1"));
-  else
-    display.print(F("RELAY2"));
+  display.print(F("OUTPUT"));
   display.setTextSize(2);
   display.setCursor(80,42);
-  if (timeNow.second() % 2 == 0) {
-    if (relay1On)
-      display.print(F("On"));
-    else
-      display.print(F("Off"));
-  }
-  else {
-    if (relay2On)
-      display.print(F("On"));
-    else
-      display.print(F("Off"));
-  }
+  if (relay1On)
+    display.print(F("O"));
+  else
+    display.print(F("-"));
+  display.print(F("/"));
+  if (relay2On)
+    display.print(F("O"));
+  else
+    display.print(F("-"));
 
   display.display();
 }
@@ -1022,3 +1027,5 @@ char* formatDigits(byte digits, byte mode) {
     return str;
   }
 }
+
+//-------------------------------------------------------------------
