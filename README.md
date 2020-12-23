@@ -9,6 +9,8 @@ To make it even more flexible, there are two relay outputs. The first output is 
 
 The prototype is using the Arduino Uno board, it uses almost all RAM, but seems to be stable. If you want to add functionality, you might need a more powerful board.
 
+![Astro Timer in 3D-printed case](https://github.com/VauxhallViva/astrotimer/blob/main/images/case_completed_sml.jpg)
+
 # Hardware
 The following hardware is needed:
   - I2C real time clock (RTC) based on DS1307, for example the one from Adafruit.
